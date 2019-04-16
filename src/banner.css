@@ -1,0 +1,16 @@
+.banner {
+    height: 50px;
+    width: 380px;
+    padding: 10px;
+    background-color: #28353d;
+    color: #eee;
+    word-wrap: break-word;
+}
+
+.banner .primary {
+    font-size: 18px;
+}
+
+.banner .secondary {
+    font-size: 16px;
+}

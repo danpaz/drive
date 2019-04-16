@@ -1,3 +1,29 @@
+# Drive
+
+⚠ **under construction** ⚠
+
+Drive combines the building blocks of Mapbox and deck.gl into a complete navigation experience, designed for the mobile web.
+
+- Turn-by-turn directions using the traffic-aware Mapbox Directions API
+- Full-featured Search UI with the Mapbox Geocoder plugin
+- Built around a map style designed exclusively for driving, Mapbox Guidance V4
+
+**Disclaimer**: This is an experimental demo app and should not be considered safe for real-world driving.
+
+Drive is built with React and uses mapbox-gl-js, deck.gl and turf.
+
+# TODOs
+
+- [ ] banner icons
+- [ ] style the bottom route details
+- [ ] voice instructions https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API
+- [ ] camera angles
+- [ ] camera zoom at maneuvers
+- [ ] exit navigation
+- [ ] fit to mobile screen
+
+# Development
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
