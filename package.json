@@ -2,6 +2,7 @@
   "name": "drive",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://danpaz.github.io/drive",
   "dependencies": {
     "@mapbox/geo-viewport": "^0.4.0",
     "@mapbox/mapbox-sdk": "^0.6.0",
@@ -9,6 +10,7 @@
     "@turf/helpers": "^6.1.4",
     "@turf/nearest-point-on-line": "^6.0.2",
     "deck.gl": "^6.4.7",
+    "gh-pages": "^2.0.1",
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
     "react-map-gl": "^4.1.1",
@@ -19,7 +21,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": "react-app"
