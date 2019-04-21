@@ -17,18 +17,26 @@ function formatDistance(m) {
 
 class RouteDetails extends Component {
   render() {
-    const { routeResult, onClick } = this.props;
+    const { routeResult, onClickStartNavigation, onClickStartSimulation, onClickCancelNavigation, isNavigating } = this.props;
 
     const time = formatTime(routeResult.duration);
     const distance = formatDistance(routeResult.distance);
 
     return (
       <div>
-        <div>
-          {time.value} {time.unit} ({distance.value} {distance.unit})
-
-        </div>
-        <button onClick={onClick}>Start</button>
+        { isNavigating ? (
+          <button onClick={onClickCancelNavigation}>Cancel</button>
+        ) : (
+          <div>
+            <div>
+              {time.value} {time.unit} ({distance.value} {distance.unit})
+            </div>
+            <div>
+              <button onClick={onClickStartNavigation}>Start</button>
+              <button onClick={onClickStartSimulation}>Simulate</button>
+            </div>
+          </div>
+        )}
       </div>
     )
   }

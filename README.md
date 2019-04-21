@@ -14,12 +14,12 @@ Drive is built with React and uses mapbox-gl-js, deck.gl and turf.
 
 # TODOs
 
+- [X] exit navigation
 - [ ] banner icons
 - [ ] style the bottom route details
 - [ ] voice instructions https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API
 - [ ] camera angles
 - [ ] camera zoom at maneuvers
-- [ ] exit navigation
 - [ ] fit to mobile screen
 
 # Development

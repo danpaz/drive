@@ -38,7 +38,7 @@ function simulateLocation(routeGeometry, routeDistance, cb) {
     })
   }
 
-  setInterval(() => {
+  return setInterval(() => {
     if (step < NUM_SIMULATED_POINTS) updateLocation();
   }, UPDATE_FREQUENCY_MS)
 
@@ -94,8 +94,8 @@ class App extends Component {
       longitude: -77.1876467,
       zoom: 16,
       maxZoom: 18,
+      transitionDuration: 1000
     },
-    // currentPosition: null,
     geolocationWatcher: null,
     currentPosition: {
       latitude: 38.8980586,
@@ -114,25 +114,40 @@ class App extends Component {
     currentRouteStepIndex: 0,
     searchResult: null,
     searchResultLayer: null,
-    routeResult: null,//(require('./routefixture.json')),
+    routeResult: null,
     routeResultLayer: null,
-    isDriving: false
+    isNavigating: false,
+    simulationIntervalId: null
   };
 
   mapRef = React.createRef();
 
+  componentDidMount() {
+    window.addEventListener('resize', this.resize);
+    this.resize();
+  };
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.resize);
+  };
+
+  resize = () => {
+    this.handleViewportChange({
+      width: window.innerWidth,
+      height: window.innerHeight - 100
+    });
+  };
+
   handleViewportChange = viewport => {
-    this.setState({viewport});
-    // this.setState({
-    //   viewport: {
-    //     ...this.state.viewport,
-    //     viewport
-    //   }
-    // })
-  }
+    this.setState({
+      viewport: { ...this.state.viewport, ...viewport }
+    });
+  };
 
   handleSearchResult = event => {
     this.setState({
+      routeResult: null,
+      routeResultLayer: null,
       searchResult: event.result,
       searchResultLayer: new GeoJsonLayer({
         id: 'search-result',
@@ -198,13 +213,10 @@ class App extends Component {
           [400, 400]
         );
 
-        this.setState({
-          viewport: {
-            ...this.state.viewport,
-            longitude: viewport.center[0],
-            latitude: viewport.center[1],
-            zoom: viewport.zoom
-          }
+        this.handleViewportChange({
+          longitude: viewport.center[0],
+          latitude: viewport.center[1],
+          zoom: viewport.zoom
         });
       })
       .catch(err => console.error(err));
@@ -263,25 +275,43 @@ class App extends Component {
   };
 
   handleStartNavigation = () => {
-    const route = this.state.routeResult;
-    simulateLocation(route.geometry, route.distance, this.handleNewPositionSuccess);
-    // const geolocationWatcher = watchGeolocation(this.handleNewPositionSuccess, this.handleNewPositionError);
-    this.setState({ isDriving: true });
+    const geolocationWatcher = watchGeolocation(this.handleNewPositionSuccess, this.handleNewPositionError);
+    this.setState({
+      isNavigating: true,
+      geolocationWatcher
+    });
+  };
+
+  handleStartSimulation = () => {
+    const { geometry, distance } = this.state.routeResult;
+    const simulationIntervalId = simulateLocation(geometry, distance, this.handleNewPositionSuccess);
+    this.setState({
+      isNavigating: true,
+      simulationIntervalId
+    });
+  };
+
+  handleCancelNavigation = () => {
+    clearInterval(this.state.simulationIntervalId);
+    this.setState({
+      isNavigating: false,
+      simulationIntervalId: null
+    });
   };
 
   render() {
-    const { viewport, searchResult, searchResultLayer, routeResult, routeResultLayer, currentPosition, currentPositionLayer, currentRouteStepIndex, distanceAlongGeometry, isDriving } = this.state;
+    const { viewport, searchResult, searchResultLayer, routeResult, routeResultLayer, currentPosition, currentPositionLayer, currentRouteStepIndex, distanceAlongGeometry, isNavigating } = this.state;
 
     let BottomBanner;
     if (searchResult && !routeResult) {
       BottomBanner = <SearchDetails searchResult={searchResult} onClick={this.handleGetDirections} />
-    } else if (routeResult && !isDriving) {
-      BottomBanner = <RouteDetails routeResult={routeResult} onClick={this.handleStartNavigation} />
+    } else if (routeResult) {
+      BottomBanner = <RouteDetails routeResult={routeResult} isNavigating={isNavigating} onClickStartNavigation={this.handleStartNavigation} onClickStartSimulation={this.handleStartSimulation} onClickCancelNavigation={this.handleCancelNavigation} />
     }
 
     return (
       <>
-        { isDriving && routeResult &&
+        { isNavigating && routeResult &&
           <Banner routeResult={routeResult} distanceAlongGeometry={distanceAlongGeometry} currentRouteStepIndex={currentRouteStepIndex} />
         }
         <MapGL
@@ -290,7 +320,7 @@ class App extends Component {
           {...viewport}
           onViewportChange={this.handleViewportChange}
         >
-          { !isDriving &&
+          { !isNavigating &&
             <Geocoder
               mapRef={this.mapRef}
               onViewportChange={this.handleViewportChange}
