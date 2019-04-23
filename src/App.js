@@ -88,8 +88,8 @@ class App extends Component {
 
   state = {
     viewport: {
-      width: 400,
-      height: 600,
+      width: window.innerWidth,
+      height: window.innerHeight - 100,
       latitude: 38.8980586,
       longitude: -77.1876467,
       zoom: 16,
@@ -121,22 +121,6 @@ class App extends Component {
   };
 
   mapRef = React.createRef();
-
-  componentDidMount() {
-    window.addEventListener('resize', this.resize);
-    this.resize();
-  };
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.resize);
-  };
-
-  resize = () => {
-    this.handleViewportChange({
-      width: window.innerWidth,
-      height: window.innerHeight - 100
-    });
-  };
 
   handleViewportChange = viewport => {
     this.setState({
