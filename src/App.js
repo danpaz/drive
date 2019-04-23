@@ -67,13 +67,7 @@ function requestDirections(start, end) {
 
 function requestGeolocation() {
   return new Promise((resolve, reject) => {
-    resolve({
-      coords: {
-        latitude: 38.8980586,
-        longitude: -77.1876467
-      }
-    });
-    // navigator.geolocation.getCurrentPosition(resolve, reject);
+    navigator.geolocation.getCurrentPosition(resolve, reject);
   });
 }
 
@@ -89,28 +83,20 @@ class App extends Component {
   state = {
     viewport: {
       width: window.innerWidth,
-      height: window.innerHeight - 100,
-      latitude: 38.8980586,
-      longitude: -77.1876467,
-      zoom: 16,
+      height: window.innerHeight - 200,
+      latitude: 40.0,
+      longitude: -90.0,
+      zoom: 2,
       maxZoom: 18,
       transitionDuration: 1000
     },
     geolocationWatcher: null,
     currentPosition: {
-      latitude: 38.8980586,
-      longitude: -77.1876467
+      latitude: null,
+      longitude: null,
+      lastupdated: null
     },
-    currentPositionLayer: new GeoJsonLayer({
-      id: 'current-position',
-      data: {
-        type: 'Point',
-        coordinates: [-77.1876467, 38.8980586]
-      },
-      getFillColor: [255, 255, 255, 255],
-      getRadius: 5,
-      pointRadiusMinPixels: 5
-    }),
+    currentPositionLayer: null,
     currentRouteStepIndex: 0,
     searchResult: null,
     searchResultLayer: null,
@@ -121,6 +107,18 @@ class App extends Component {
   };
 
   mapRef = React.createRef();
+
+  componentDidMount() {
+    requestGeolocation()
+      .then(p => {
+        this.handlePositionChange(p);
+        this.handleViewportChange({
+          longitude: p.coords.longitude,
+          latitude: p.coords.latitude,
+          zoom: 16
+        });
+      });
+  };
 
   handleViewportChange = viewport => {
     this.setState({
@@ -136,9 +134,14 @@ class App extends Component {
       searchResultLayer: new GeoJsonLayer({
         id: 'search-result',
         data: event.result.geometry,
-        getFillColor: [160, 160, 180, 200],
-        getRadius: 5,
-        pointRadiusMinPixels: 5
+        getFillColor: [253, 153, 108, 255],
+        getLineColor: [255, 255, 255, 255],
+        getRadius: 7,
+        pointRadiusMinPixels: 7,
+        getLineWidth: 2,
+        lineWidthMinPixels: 2,
+        stroked: true,
+        filled: true
       })
     });
   };
@@ -152,25 +155,34 @@ class App extends Component {
     });
   };
 
+  handlePositionChange = event => {
+    this.setState({
+      currentPosition: {
+        longitude: event.coords.longitude,
+        latitude: event.coords.latitude,
+        lastupdated: event.timestamp
+      },
+      currentPositionLayer: new GeoJsonLayer({
+        id: 'current-position',
+        data: {
+          type: 'Point',
+          coordinates: [event.coords.longitude, event.coords.latitude]
+        },
+        getFillColor: [70, 136, 241, 255],
+        getLineColor: [255, 255, 255, 255],
+        getRadius: 7,
+        pointRadiusMinPixels: 7,
+        getLineWidth: 2,
+        lineWidthMinPixels: 2,
+        stroked: true,
+        filled: true
+      })
+    });
+  };
+
   handleGetDirections = event => {
     requestGeolocation()
-      .then(p => this.setState({
-        currentPosition: {
-          longitude: p.coords.longitude,
-          latitude: p.coords.latitude,
-          lastupdated: p.timestamp
-        },
-        currentPositionLayer: new GeoJsonLayer({
-          id: 'current-position',
-          data: {
-            type: 'Point',
-            coordinates: [p.coords.longitude, p.coords.latitude]
-          },
-          getFillColor: [255, 255, 255, 255],
-          getRadius: 5,
-          pointRadiusMinPixels: 5
-        })
-      }))
+      .then(p => this.handlePositionChange(p))
       .then(() => {
         const start = [this.state.currentPosition.longitude, this.state.currentPosition.latitude];
         const end = this.state.searchResult.center;
@@ -182,8 +194,8 @@ class App extends Component {
           id: 'route-result',
           data: r[0].geometry,
           lineWidthMinPixels: 3,
-          getLineColor: [66, 100, 251, 255],
-          getLineWidth: 5,
+          getLineColor: [66, 100, 251, 200],
+          getLineWidth: 7,
         })
       }))
       .then(() => {
@@ -227,30 +239,16 @@ class App extends Component {
 
     const distanceAlongGeometry = snappedPosition.properties.location * 1000;
 
+    this.handlePositionChange(p);
+    this.handleViewportChange({
+      longitude: p.coords.longitude,
+      latitude: p.coords.latitude,
+      zoom: 16
+    });
+
     this.setState({
-      viewport: {
-        ...this.state.viewport,
-        longitude: p.coords.longitude,
-        latitude: p.coords.latitude,
-        zoom: 16
-      },
-      currentPosition: {
-        longitude: p.coords.longitude,
-        latitude: p.coords.latitude,
-        lastupdated: p.timestamp
-      },
       currentRouteStepIndex: currentRouteStepIndex,
       distanceAlongGeometry: distanceAlongGeometry,
-      currentPositionLayer: new GeoJsonLayer({
-        id: 'current-position',
-        data: {
-          type: 'Point',
-          coordinates: [p.coords.longitude, p.coords.latitude]
-        },
-        getFillColor: [255, 255, 255, 255],
-        getRadius: 5,
-        pointRadiusMinPixels: 5
-      })
     });
   };
 
